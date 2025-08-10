@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Kalori Sayar</title>
+  <meta name="description" content="Basit kalori takip, BKI ve günlük kalori ihtiyacı (TDEE) hesaplayıcı" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="app-header">
+    <div class="brand">
+      <span class="logo">🍎</span>
+      <span class="title">Kalori Sayar</span>
+    </div>
+    <nav class="tabs" role="tablist" aria-label="Bölümler">
+      <button class="tab active" data-tab="track" role="tab" aria-selected="true">Kalori Takip</button>
+      <button class="tab" data-tab="bmi" role="tab" aria-selected="false">BKI</button>
+      <button class="tab" data-tab="tdee" role="tab" aria-selected="false">Günlük İhtiyaç</button>
+    </nav>
+  </header>
+
+  <main class="container">
+    <!-- Kalori Takip -->
+    <section id="tab-track" class="tab-panel active" role="tabpanel">
+      <h2>Günlük Kalori Takibi</h2>
+      <form id="entry-form" class="card form" autocomplete="off">
+        <div class="field">
+          <label for="food-name">Besin adı (opsiyonel)</label>
+          <input id="food-name" type="text" placeholder="Örn: Tavuk göğsü" />
+        </div>
+        <div class="field">
+          <label for="calories">Kalori (kcal)</label>
+          <input id="calories" type="number" min="0" step="1" inputmode="numeric" placeholder="Örn: 350" required />
+        </div>
+        <div class="field">
+          <label for="date">Tarih</label>
+          <input id="date" type="date" required />
+        </div>
+        <div class="actions">
+          <button type="submit" class="btn primary">Ekle</button>
+          <button type="button" id="clear-day" class="btn danger outline">Günü Temizle</button>
+        </div>
+      </form>
+
+      <div class="grid two">
+        <div class="card">
+          <div class="stat">
+            <div class="stat-label">Bugünün Toplamı</div>
+            <div class="stat-value"><span id="today-total">0</span> kcal</div>
+          </div>
+          <canvas id="week-chart" height="140" aria-label="Son 7 gün kalori grafiği"></canvas>
+        </div>
+
+        <div class="card">
+          <div class="list-header">
+            <h3 id="list-title">Bugünkü Kayıtlar</h3>
+            <div class="spacer"></div>
+            <input id="filter-date" type="date" />
+          </div>
+          <div class="table-wrapper">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Besin</th>
+                  <th>Kalori</th>
+                  <th>Tarih</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody id="entry-list"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- BKI -->
+    <section id="tab-bmi" class="tab-panel" role="tabpanel" hidden>
+      <h2>Beden Kitle İndeksi (BKI)</h2>
+      <form id="bmi-form" class="card form">
+        <div class="field">
+          <label for="bmi-height">Boy (cm)</label>
+          <input id="bmi-height" type="number" min="80" max="250" step="0.1" placeholder="Örn: 175" required />
+        </div>
+        <div class="field">
+          <label for="bmi-weight">Kilo (kg)</label>
+          <input id="bmi-weight" type="number" min="20" max="400" step="0.1" placeholder="Örn: 70" required />
+        </div>
+        <div class="actions">
+          <button type="submit" class="btn primary">Hesapla</button>
+          <button type="reset" class="btn">Temizle</button>
+        </div>
+      </form>
+      <div id="bmi-result" class="card result" hidden>
+        <div class="stat">
+          <div class="stat-label">BKI</div>
+          <div class="stat-value"><span id="bmi-value">0</span></div>
+        </div>
+        <p id="bmi-desc" class="muted"></p>
+        <p id="bmi-ideal" class="muted"></p>
+      </div>
+    </section>
+
+    <!-- TDEE -->
+    <section id="tab-tdee" class="tab-panel" role="tabpanel" hidden>
+      <h2>Günlük Kalori İhtiyacı (TDEE)</h2>
+      <form id="tdee-form" class="card form">
+        <div class="field">
+          <label for="tdee-age">Yaş</label>
+          <input id="tdee-age" type="number" min="12" max="100" step="1" placeholder="Örn: 30" required />
+        </div>
+        <div class="field">
+          <label for="tdee-gender">Cinsiyet</label>
+          <select id="tdee-gender" required>
+            <option value="male">Erkek</option>
+            <option value="female">Kadın</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="tdee-height">Boy (cm)</label>
+          <input id="tdee-height" type="number" min="80" max="250" step="0.1" placeholder="Örn: 175" required />
+        </div>
+        <div class="field">
+          <label for="tdee-weight">Kilo (kg)</label>
+          <input id="tdee-weight" type="number" min="20" max="400" step="0.1" placeholder="Örn: 70" required />
+        </div>
+        <div class="field full">
+          <label for="tdee-activity">Aktivite düzeyi</label>
+          <select id="tdee-activity" required>
+            <option value="1.2">Sedanter (az hareket)</option>
+            <option value="1.375">Hafif aktif (1-3 gün/hafta)</option>
+            <option value="1.55" selected>Orta aktif (3-5 gün/hafta)</option>
+            <option value="1.725">Çok aktif (6-7 gün/hafta)</option>
+            <option value="1.9">Aşırı aktif (günde 2x)</option>
+          </select>
+        </div>
+        <div class="actions">
+          <button type="submit" class="btn primary">Hesapla</button>
+          <button type="reset" class="btn">Temizle</button>
+        </div>
+      </form>
+      <div id="tdee-result" class="card result" hidden>
+        <div class="grid three stats">
+          <div class="stat">
+            <div class="stat-label">BMR</div>
+            <div class="stat-value"><span id="bmr-value">0</span> kcal</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">TDEE</div>
+            <div class="stat-value"><span id="tdee-value">0</span> kcal</div>
+          </div>
+          <div class="stat">
+            <div class="stat-label">Bakım Kalorisi</div>
+            <div class="stat-value"><span id="maintain-value">0</span> kcal</div>
+          </div>
+        </div>
+        <div class="grid three">
+          <div class="suggestion">
+            <h4>Kilo Verme</h4>
+            <p><span id="loss-500">0</span> kcal (yaklaşık -500)</p>
+          </div>
+          <div class="suggestion">
+            <h4>Yavaş Kilo Alma</h4>
+            <p><span id="gain-300">0</span> kcal (yaklaşık +300)</p>
+          </div>
+          <div class="suggestion">
+            <h4>Öneri</h4>
+            <p class="muted">Doktorunuza veya diyetisyeninize danışın. Bu araç yalnızca bilgi amaçlıdır.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <span>© <span id="year"></span> Kalori Sayar</span>
+  </footer>
+
+  <script src="app.js" defer></script>
+</body>
+</html>
